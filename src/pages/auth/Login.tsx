@@ -48,10 +48,10 @@ const Login = () => {
         {/* Logo and Title */}
         <VStack gap={4} mb={8} textAlign="center">
           <HStack gap={2} justify="center">
-            <Icon fontSize="3xl" color="blue.600">
+            <Icon fontSize="3xl" style={{ color: '#238D94' }}>
               <Heart />
             </Icon>
-            <Heading size="3xl" color="blue.700">
+            <Heading size="3xl" style={{ color: '#1a6b70' }}>
               CareFlow
             </Heading>
           </HStack>
