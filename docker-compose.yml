@@ -1,0 +1,122 @@
+version: '3.9'
+
+services:
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        - VITE_API_URL=http://host.docker.internal:3010
+    environment:
+      - VITE_API_URL=http://host.docker.internal:3010
+    ports:
+      - "3000:80" # host:container (frontend served by nginx on container port 80)
+    restart: unless-stopped
+    networks:
+      - careflow-network
+
+  api:
+    build: .
+    container_name: careflow-api
+    restart: unless-stopped
+    working_dir: /app
+    env_file:
+      - .env
+    command: npm run dev
+    ports:
+      - "${PORT:-3010}:3010"
+    depends_on:
+      - mongodb
+      - redis
+      - minio
+    secrets:
+      - jwt_private.pem
+      - jwt_public.pem
+    volumes:
+      - .:/app
+      - /app/node_modules
+    networks:
+      - careflow-network
+
+  mongodb:
+    image: mongo:6
+    container_name: careflow-mongo
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
+    ports:
+      - "${MONGO_DB_PORT}:27017"
+    volumes:
+      - mongo-data:/data/db
+    networks:
+      - careflow-network
+
+  mongo-express:
+    image: mongo-express:1.0.0
+    container_name: careflow-mongo-express
+    restart: always
+    depends_on:
+      - mongodb
+    environment:
+      ME_CONFIG_MONGODB_ADMINUSERNAME: ${MONGO_INITDB_ROOT_USERNAME}
+      ME_CONFIG_MONGODB_ADMINPASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
+      ME_CONFIG_MONGODB_SERVER: mongodb
+      ME_CONFIG_BASICAUTH_USERNAME: admin
+      ME_CONFIG_BASICAUTH_PASSWORD: admin
+    ports:
+      - "${MONGO_EXPRESS_PORT}:8081"
+    networks:
+      - careflow-network
+
+  redis:
+    image: redis:7
+    container_name: careflow-redis
+    restart: always
+    ports:
+      - "${REDIS_PORT}:6379"
+    networks:
+      - careflow-network
+
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    container_name: careflow-redis-commander
+    restart: always
+    environment:
+      REDIS_HOSTS: local:redis:6379
+    ports:
+      - "${REDIS_COMMANDER_PORT}:8082"
+    depends_on:
+      - redis
+    networks:
+      - careflow-network
+
+  minio:
+    image: minio/minio:latest
+    container_name: careflow-minio
+    restart: always
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+    command: server /data --console-address ":${MINIO_CONSOLE_PORT}"
+    ports:
+      - "${MINIO_API_PORT}:9000"
+      - "${MINIO_CONSOLE_PORT}:9001"
+    volumes:
+      - minio-data:/data
+    networks:
+      - careflow-network
+
+secrets:
+  jwt_private.pem:
+    file: ./secrets/jwt_private.pem
+  jwt_public.pem:
+    file: ./secrets/jwt_public.pem
+
+volumes:
+  mongo-data:
+  minio-data:
+
+networks:
+  careflow-network:
+    driver: bridge
