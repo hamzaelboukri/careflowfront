@@ -24,9 +24,12 @@ const Login = () => {
 
     try {
       const response = await api.post('/auth/login', { email, password })
-      const { user, token } = response.data
+      const { accessToken, user } = response.data
       
-      login(user, token)
+      // Store token in localStorage and auth store
+      localStorage.setItem('careflow_token', accessToken)
+      login(user, accessToken)
+      
       toaster.success({ 
         title: 'Connexion réussie',
         description: `Bienvenue ${user.name}`
@@ -87,7 +90,7 @@ const Login = () => {
                     size="lg"
                     borderRadius="lg"
                     borderColor="gray.300"
-                    _focus={{ borderColor: 'blue.500', boxShadow: '0 0 0 1px var(--chakra-colors-blue-500)' }}
+                    css={{ '&:focus': { borderColor: '#238D94', boxShadow: '0 0 0 1px #238D94' } }}
                   />
                 </Box>
 
@@ -109,27 +112,26 @@ const Login = () => {
                     size="lg"
                     borderRadius="lg"
                     borderColor="gray.300"
-                    _focus={{ borderColor: 'blue.500', boxShadow: '0 0 0 1px var(--chakra-colors-blue-500)' }}
+                    css={{ '&:focus': { borderColor: '#238D94', boxShadow: '0 0 0 1px #238D94' } }}
                   />
                 </Box>
 
                 <Box w="full" textAlign="right">
-                  <Link asChild color="blue.600" fontSize="sm" fontWeight="medium">
+                  <Link asChild fontSize="sm" fontWeight="medium" style={{ color: '#238D94' }}>
                     <RouterLink to="/forgot-password">Mot de passe oublié ?</RouterLink>
                   </Link>
                 </Box>
 
                 <Button
                   type="submit"
-                  bg="blue.600"
                   color="white"
-                  _hover={{ bg: 'blue.700' }}
                   w="full"
                   size="lg"
                   borderRadius="lg"
                   loading={isLoading}
                   fontWeight="bold"
                   fontSize="lg"
+                  css={{ background: '#238D94', '&:hover': { background: '#1a6b70' } }}
                 >
                   Se connecter
                 </Button>
@@ -139,7 +141,7 @@ const Login = () => {
             <Box pt={4} borderTop="1px" borderColor="gray.200" w="full" textAlign="center">
               <Text color="gray.600">
                 Pas encore de compte ?{' '}
-                <Link asChild color="blue.600" fontWeight="semibold">
+                <Link asChild fontWeight="semibold" style={{ color: '#238D94' }}>
                   <RouterLink to="/register">Créer un compte</RouterLink>
                 </Link>
               </Text>
@@ -149,7 +151,7 @@ const Login = () => {
 
         {/* Back to Home */}
         <Box textAlign="center" mt={6}>
-          <Link asChild color="gray.600" fontSize="sm" _hover={{ color: 'blue.600' }}>
+          <Link asChild color="gray.600" fontSize="sm" css={{ '&:hover': { color: '#238D94' } }}>
             <RouterLink to="/">← Retour à l'accueil</RouterLink>
           </Link>
         </Box>

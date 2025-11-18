@@ -8,6 +8,7 @@ import Login from './pages/auth/Login'
 import Register from './pages/auth/Register'
 import ForgotPassword from './pages/auth/ForgotPassword'
 import ResetPassword from './pages/auth/ResetPassword'
+import TestConnection from './pages/TestConnection'
 
 // Protected pages
 import Dashboard from './pages/Dashboard'
@@ -27,6 +28,7 @@ import DocumentsList from './pages/documents/DocumentsList'
 import DocumentDetail from './pages/documents/DocumentDetail'
 
 import { ProtectedRoute } from './components/ProtectedRoute'
+import { PublicRoute } from './components/PublicRoute'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -42,12 +44,17 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
         <Routes>
-          {/* Public routes */}
-          <Route path="/" element={<Home />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
+          {/* Public routes - redirect to dashboard if already logged in */}
+          <Route element={<PublicRoute />}>
+            <Route path="/" element={<Home />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+          </Route>
+          
+          {/* Auth routes without redirect (for password reset flow) */}
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/reset-password" element={<ResetPassword />} />
+          <Route path="/test-connection" element={<TestConnection />} />
 
           {/* Protected routes */}
           <Route element={<ProtectedRoute />}>

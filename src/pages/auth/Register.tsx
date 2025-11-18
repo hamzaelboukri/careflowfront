@@ -3,7 +3,7 @@ import { Box, Heading, Text, Input, Button, VStack, Link, HStack, Icon } from '@
 import { useNavigate, Link as RouterLink } from 'react-router-dom'
 import api from '../../lib/api'
 import { createToaster } from '@chakra-ui/react'
-import { Heart, User, Mail, Lock, UserCircle } from 'lucide-react'
+import { Heart, User, Mail, Lock } from 'lucide-react'
 
 const toaster = createToaster({
   placement: 'top-end',
@@ -17,7 +17,6 @@ const Register = () => {
     email: '',
     password: '',
     confirmPassword: '',
-    role: 'PATIENT',
   })
   const [isLoading, setIsLoading] = useState(false)
 
@@ -51,12 +50,19 @@ const Register = () => {
     setIsLoading(true)
 
     try {
-      await api.post('/auth/register', {
+      console.log('Sending registration data:', {
+        name: formData.name,
+        email: formData.email,
+        password: '***hidden***'
+      })
+
+      const response = await api.post('/auth/register', {
         name: formData.name,
         email: formData.email,
         password: formData.password,
-        role: formData.role,
       })
+
+      console.log('Registration response:', response.data)
 
       toaster.success({
         title: 'Inscription réussie',
@@ -65,9 +71,13 @@ const Register = () => {
 
       navigate('/login')
     } catch (error: any) {
+      console.error('Registration error:', error)
+      console.error('Error response:', error.response?.data)
+      console.error('Error status:', error.response?.status)
+      
       toaster.error({
         title: 'Erreur d\'inscription',
-        description: error.response?.data?.message || 'Une erreur est survenue lors de l\'inscription',
+        description: error.response?.data?.message || error.message || 'Une erreur est survenue lors de l\'inscription',
       })
     } finally {
       setIsLoading(false)
@@ -80,10 +90,10 @@ const Register = () => {
         {/* Logo and Title */}
         <VStack gap={4} mb={8} textAlign="center">
           <HStack gap={2} justify="center">
-            <Icon fontSize="3xl" color="blue.600">
+            <Icon fontSize="3xl" style={{ color: '#238D94' }}>
               <Heart />
             </Icon>
-            <Heading size="3xl" color="blue.700">
+            <Heading size="3xl" style={{ color: '#1a6b70' }}>
               CareFlow
             </Heading>
           </HStack>
@@ -120,7 +130,7 @@ const Register = () => {
                     size="lg"
                     borderRadius="lg"
                     borderColor="gray.300"
-                    _focus={{ borderColor: 'blue.500', boxShadow: '0 0 0 1px var(--chakra-colors-blue-500)' }}
+                    css={{ '&:focus': { borderColor: '#238D94', boxShadow: '0 0 0 1px #238D94' } }}
                   />
                 </Box>
 
@@ -143,38 +153,8 @@ const Register = () => {
                     size="lg"
                     borderRadius="lg"
                     borderColor="gray.300"
-                    _focus={{ borderColor: 'blue.500', boxShadow: '0 0 0 1px var(--chakra-colors-blue-500)' }}
+                    css={{ '&:focus': { borderColor: '#238D94', boxShadow: '0 0 0 1px #238D94' } }}
                   />
-                </Box>
-
-                <Box w="full">
-                  <HStack mb={2}>
-                    <Icon fontSize="lg" color="gray.500">
-                      <UserCircle />
-                    </Icon>
-                    <Text fontWeight="medium" color="gray.700">
-                      Type de compte
-                    </Text>
-                  </HStack>
-                  <select
-                    name="role"
-                    value={formData.role}
-                    onChange={handleChange}
-                    style={{
-                      height: '48px',
-                      padding: '0 16px',
-                      borderRadius: '8px',
-                      borderWidth: '1px',
-                      borderColor: '#D1D5DB',
-                      fontSize: '16px',
-                      width: '100%',
-                    }}
-                  >
-                    <option value="PATIENT">Patient</option>
-                    <option value="DOCTOR">Médecin</option>
-                    <option value="NURSE">Infirmier(ère)</option>
-                    <option value="ADMIN">Administrateur</option>
-                  </select>
                 </Box>
 
                 <Box w="full">
@@ -196,7 +176,7 @@ const Register = () => {
                     size="lg"
                     borderRadius="lg"
                     borderColor="gray.300"
-                    _focus={{ borderColor: 'blue.500', boxShadow: '0 0 0 1px var(--chakra-colors-blue-500)' }}
+                    css={{ '&:focus': { borderColor: '#238D94', boxShadow: '0 0 0 1px #238D94' } }}
                   />
                   <Text fontSize="sm" color="gray.500" mt={1}>
                     Minimum 6 caractères
@@ -222,15 +202,13 @@ const Register = () => {
                     size="lg"
                     borderRadius="lg"
                     borderColor="gray.300"
-                    _focus={{ borderColor: 'blue.500', boxShadow: '0 0 0 1px var(--chakra-colors-blue-500)' }}
+                    css={{ '&:focus': { borderColor: '#238D94', boxShadow: '0 0 0 1px #238D94' } }}
                   />
                 </Box>
 
                 <Button
                   type="submit"
-                  bg="blue.600"
                   color="white"
-                  _hover={{ bg: 'blue.700' }}
                   w="full"
                   size="lg"
                   borderRadius="lg"
@@ -238,6 +216,7 @@ const Register = () => {
                   fontWeight="bold"
                   fontSize="lg"
                   mt={2}
+                  css={{ background: '#238D94', '&:hover': { background: '#1a6b70' } }}
                 >
                   Créer mon compte
                 </Button>
@@ -247,7 +226,7 @@ const Register = () => {
             <Box pt={4} borderTop="1px" borderColor="gray.200" w="full" textAlign="center">
               <Text color="gray.600">
                 Vous avez déjà un compte ?{' '}
-                <Link asChild color="blue.600" fontWeight="semibold">
+                <Link asChild fontWeight="semibold" style={{ color: '#238D94' }}>
                   <RouterLink to="/login">Se connecter</RouterLink>
                 </Link>
               </Text>
@@ -257,7 +236,7 @@ const Register = () => {
 
         {/* Back to Home */}
         <Box textAlign="center" mt={6}>
-          <Link asChild color="gray.600" fontSize="sm" _hover={{ color: 'blue.600' }}>
+          <Link asChild color="gray.600" fontSize="sm" css={{ '&:hover': { color: '#238D94' } }}>
             <RouterLink to="/">← Retour à l'accueil</RouterLink>
           </Link>
         </Box>
