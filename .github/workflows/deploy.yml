@@ -69,15 +69,6 @@ jobs:
           publish_dir: ./dist
           cname: careflow.yourdomain.com  # Optional: Replace with your custom domain
       
-      # Alternative: Deploy to Vercel
-      # - name: Deploy to Vercel
-      #   uses: amondnet/vercel-action@v25
-      #   with:
-      #     vercel-token: ${{ secrets.VERCEL_TOKEN }}
-      #     vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
-      #     vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
-      #     vercel-args: '--prod'
-      
       # Alternative: Deploy to Netlify
       # - name: Deploy to Netlify
       #   uses: nwtgck/actions-netlify@v3

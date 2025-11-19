@@ -8,8 +8,6 @@ import Login from './pages/auth/Login'
 import Register from './pages/auth/Register'
 import ForgotPassword from './pages/auth/ForgotPassword'
 import ResetPassword from './pages/auth/ResetPassword'
-import TestConnection from './pages/TestConnection'
-
 // Protected pages
 import Dashboard from './pages/Dashboard'
 import Profile from './pages/Profile'
@@ -54,8 +52,6 @@ function App() {
           {/* Auth routes without redirect (for password reset flow) */}
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/reset-password" element={<ResetPassword />} />
-          <Route path="/test-connection" element={<TestConnection />} />
-
           {/* Protected routes */}
           <Route element={<ProtectedRoute />}>
             <Route path="/dashboard" element={<Dashboard />} />

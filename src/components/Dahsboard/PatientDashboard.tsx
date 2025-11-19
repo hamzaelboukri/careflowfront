@@ -1,25 +1,40 @@
-import { Calendar, Clock, FileText, AlertCircle, CheckCircle, User } from 'lucide-react';
+import { Calendar, Plus, Bell, Activity, Pill, TestTube } from 'lucide-react';
 import { useAuthStore } from '../../stores/authStore';
+import { useNavigate } from 'react-router-dom';
+import { Box, Button, Heading, Text, SimpleGrid, Card, HStack, VStack, Icon } from '@chakra-ui/react';
+import {
+  StatCard,
+  AppointmentCard,
+  MedicalRecordCard,
+  PrescriptionCard,
+  LabResultCard,
+  AlertCard,
+} from '../ui';
+import { AlertCircle } from 'lucide-react';
 
 export function PatientDashboard() {
   const user = useAuthStore((state: any) => state.user);
+  const navigate = useNavigate();
 
+  // Mock data - À remplacer par des appels API réels
   const upcomingAppointments = [
     {
       id: '1',
       date: '2025-01-15',
-      time: '10:00 AM',
+      time: '10:00',
       doctor: 'Dr. Sarah Johnson',
-      specialization: 'Cardiology',
-      status: 'confirmed',
+      specialization: 'Cardiologie',
+      status: 'confirmed' as const,
+      location: 'Cabinet A - Étage 2',
     },
     {
       id: '2',
       date: '2025-01-22',
-      time: '2:30 PM',
+      time: '14:30',
       doctor: 'Dr. Michael Chen',
-      specialization: 'Dermatology',
-      status: 'pending',
+      specialization: 'Dermatologie',
+      status: 'pending' as const,
+      location: 'Cabinet B - Étage 1',
     },
   ];
 
@@ -28,178 +43,274 @@ export function PatientDashboard() {
       id: '1',
       date: '2025-01-08',
       doctor: 'Dr. Sarah Johnson',
-      diagnosis: 'Routine Checkup',
-      type: 'General Consultation',
+      diagnosis: 'Examen de routine',
+      type: 'Consultation générale',
     },
     {
       id: '2',
       date: '2024-12-15',
       doctor: 'Dr. Emily Davis',
-      diagnosis: 'Annual Physical',
-      type: 'Preventive Care',
+      diagnosis: 'Bilan annuel',
+      type: 'Soins préventifs',
+    },
+  ];
+
+  const prescriptions = [
+    {
+      id: '1',
+      medication: 'Amoxicilline 500mg',
+      doctor: 'Dr. Sarah Johnson',
+      date: '2025-01-08',
+      duration: '7 jours',
+      status: 'active' as const,
+    },
+    {
+      id: '2',
+      medication: 'Ibuprofène 400mg',
+      doctor: 'Dr. Michael Chen',
+      date: '2024-12-20',
+      duration: '5 jours',
+      status: 'completed' as const,
+    },
+  ];
+
+  const labResults = [
+    {
+      id: '1',
+      test: 'Analyse sanguine complète',
+      date: '2025-01-05',
+      status: 'completed' as const,
+      result: 'Normal',
+    },
+    {
+      id: '2',
+      test: 'Test de glycémie',
+      date: '2024-12-28',
+      status: 'completed' as const,
+      result: 'Normal',
     },
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
-      <div className="max-w-7xl mx-auto">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Welcome back, {user?.firstName}!</h1>
-          <p className="text-gray-600 mt-2">Here's your health overview</p>
-        </div>
+    <Box minH="100vh" bg="gray.50" p={6}>
+      <Box maxW="7xl" mx="auto">
+        {/* Header */}
+        <VStack align="stretch" mb={8} gap={2}>
+          <Heading size="2xl" color="gray.800">
+            Bienvenue, {user?.firstName} {user?.lastName}!
+          </Heading>
+          <Text color="gray.600" fontSize="lg">
+            Voici votre aperçu santé pour aujourd'hui
+          </Text>
+        </VStack>
 
         {/* Quick Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="flex items-center">
-              <div className="bg-blue-100 rounded-lg p-3">
-                <Calendar className="h-6 w-6 text-blue-600" />
-              </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Upcoming</p>
-                <p className="text-2xl font-bold text-gray-900">2</p>
-              </div>
-            </div>
-          </div>
+        <SimpleGrid columns={{ base: 1, md: 2, lg: 4 }} gap={6} mb={8}>
+          <StatCard
+            title="Rendez-vous à venir"
+            value={upcomingAppointments.length}
+            icon={Calendar}
+            iconColor="blue.600"
+            iconBg="blue.100"
+          />
+          <StatCard
+            title="Consultations terminées"
+            value={12}
+            icon={Activity}
+            iconColor="green.600"
+            iconBg="green.100"
+          />
+          <StatCard
+            title="Prescriptions actives"
+            value={prescriptions.filter((p) => p.status === 'active').length}
+            icon={Pill}
+            iconColor="purple.600"
+            iconBg="purple.100"
+          />
+          <StatCard
+            title="Résultats labo"
+            value={labResults.length}
+            icon={TestTube}
+            iconColor="orange.600"
+            iconBg="orange.100"
+          />
+        </SimpleGrid>
 
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="flex items-center">
-              <div className="bg-green-100 rounded-lg p-3">
-                <CheckCircle className="h-6 w-6 text-green-600" />
-              </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Completed</p>
-                <p className="text-2xl font-bold text-gray-900">12</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="flex items-center">
-              <div className="bg-yellow-100 rounded-lg p-3">
-                <Clock className="h-6 w-6 text-yellow-600" />
-              </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Pending</p>
-                <p className="text-2xl font-bold text-gray-900">1</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="flex items-center">
-              <div className="bg-purple-100 rounded-lg p-3">
-                <FileText className="h-6 w-6 text-purple-600" />
-              </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Records</p>
-                <p className="text-2xl font-bold text-gray-900">8</p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <SimpleGrid columns={{ base: 1, lg: 2 }} gap={8}>
           {/* Upcoming Appointments */}
-          <div className="bg-white rounded-lg shadow">
-            <div className="px-6 py-4 border-b border-gray-200">
-              <h2 className="text-lg font-semibold text-gray-900">Upcoming Appointments</h2>
-            </div>
-            <div className="p-6">
-              <div className="space-y-4">
+          <Card.Root bg="white" shadow="md" borderRadius="xl">
+            <Card.Header borderBottom="1px" borderColor="gray.200" p={6}>
+              <HStack justify="space-between">
+                <Heading size="lg" color="gray.900">
+                  Rendez-vous à venir
+                </Heading>
+                <Button
+                  size="sm"
+                  colorScheme="blue"
+                  onClick={() => navigate('/appointments/new')}
+                  leftIcon={
+                    <Icon>
+                      <Plus size={16} />
+                    </Icon>
+                  }
+                >
+                  Nouveau
+                </Button>
+              </HStack>
+            </Card.Header>
+            <Card.Body p={6}>
+              <VStack align="stretch" gap={4}>
                 {upcomingAppointments.map((appointment) => (
-                  <div key={appointment.id} className="border border-gray-200 rounded-lg p-4">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center">
-                        <div className="bg-blue-100 rounded-full p-2 mr-3">
-                          <User className="h-4 w-4 text-blue-600" />
-                        </div>
-                        <div>
-                          <p className="font-medium text-gray-900">{appointment.doctor}</p>
-                          <p className="text-sm text-gray-600">{appointment.specialization}</p>
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-sm font-medium text-gray-900">{appointment.date}</p>
-                        <p className="text-sm text-gray-600">{appointment.time}</p>
-                      </div>
-                    </div>
-                    <div className="mt-3 flex items-center">
-                      {appointment.status === 'confirmed' ? (
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                          <CheckCircle className="h-3 w-3 mr-1" />
-                          Confirmed
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-                          <Clock className="h-3 w-3 mr-1" />
-                          Pending
-                        </span>
-                      )}
-                    </div>
-                  </div>
+                  <AppointmentCard
+                    key={appointment.id}
+                    {...appointment}
+                    onClick={() => navigate(`/appointments/${appointment.id}`)}
+                  />
                 ))}
-              </div>
-              <button className="w-full mt-4 bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors duration-200">
-                View All Appointments
-              </button>
-            </div>
-          </div>
+              </VStack>
+              <Button
+                w="full"
+                mt={4}
+                colorScheme="blue"
+                variant="outline"
+                onClick={() => navigate('/appointments')}
+              >
+                Voir tous les rendez-vous
+              </Button>
+            </Card.Body>
+          </Card.Root>
+
+          {/* Prescriptions actives */}
+          <Card.Root bg="white" shadow="md" borderRadius="xl">
+            <Card.Header borderBottom="1px" borderColor="gray.200" p={6}>
+              <HStack justify="space-between">
+                <Heading size="lg" color="gray.900">
+                  Prescriptions actives
+                </Heading>
+                <Icon fontSize="xl" color="purple.600">
+                  <Pill />
+                </Icon>
+              </HStack>
+            </Card.Header>
+            <Card.Body p={6}>
+              <VStack align="stretch" gap={4}>
+                {prescriptions
+                  .filter((p) => p.status === 'active')
+                  .map((prescription) => (
+                    <PrescriptionCard
+                      key={prescription.id}
+                      {...prescription}
+                      onClick={() => navigate(`/prescriptions/${prescription.id}`)}
+                    />
+                  ))}
+              </VStack>
+              <Button
+                w="full"
+                mt={4}
+                colorScheme="purple"
+                variant="outline"
+                onClick={() => navigate('/prescriptions')}
+              >
+                Voir toutes les prescriptions
+              </Button>
+            </Card.Body>
+          </Card.Root>
 
           {/* Recent Medical Records */}
-          <div className="bg-white rounded-lg shadow">
-            <div className="px-6 py-4 border-b border-gray-200">
-              <h2 className="text-lg font-semibold text-gray-900">Recent Medical Records</h2>
-            </div>
-            <div className="p-6">
-              <div className="space-y-4">
+          <Card.Root bg="white" shadow="md" borderRadius="xl">
+            <Card.Header borderBottom="1px" borderColor="gray.200" p={6}>
+              <HStack justify="space-between">
+                <Heading size="lg" color="gray.900">
+                  Dossiers médicaux récents
+                </Heading>
+              </HStack>
+            </Card.Header>
+            <Card.Body p={6}>
+              <VStack align="stretch" gap={4}>
                 {recentRecords.map((record) => (
-                  <div key={record.id} className="border border-gray-200 rounded-lg p-4">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="font-medium text-gray-900">{record.diagnosis}</p>
-                        <p className="text-sm text-gray-600">{record.doctor}</p>
-                        <p className="text-xs text-gray-500 mt-1">{record.type}</p>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-sm text-gray-600">{record.date}</p>
-                      </div>
-                    </div>
-                  </div>
+                  <MedicalRecordCard
+                    key={record.id}
+                    {...record}
+                    onClick={() => navigate('/documents')}
+                    onDownload={() => console.log('Download', record.id)}
+                  />
                 ))}
-              </div>
-              <button className="w-full mt-4 bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors duration-200">
-                View All Records
-              </button>
-            </div>
-          </div>
-        </div>
+              </VStack>
+              <Button
+                w="full"
+                mt={4}
+                colorScheme="teal"
+                variant="outline"
+                onClick={() => navigate('/documents')}
+              >
+                Voir tous les dossiers
+              </Button>
+            </Card.Body>
+          </Card.Root>
+
+          {/* Lab Results */}
+          <Card.Root bg="white" shadow="md" borderRadius="xl">
+            <Card.Header borderBottom="1px" borderColor="gray.200" p={6}>
+              <HStack justify="space-between">
+                <Heading size="lg" color="gray.900">
+                  Résultats de laboratoire
+                </Heading>
+              </HStack>
+            </Card.Header>
+            <Card.Body p={6}>
+              <VStack align="stretch" gap={4}>
+                {labResults.map((result) => (
+                  <LabResultCard
+                    key={result.id}
+                    {...result}
+                    onClick={() => navigate(`/lab-orders/${result.id}`)}
+                    onDownload={() => console.log('Download', result.id)}
+                  />
+                ))}
+              </VStack>
+              <Button
+                w="full"
+                mt={4}
+                colorScheme="orange"
+                variant="outline"
+                onClick={() => navigate('/lab-orders')}
+              >
+                Voir tous les résultats
+              </Button>
+            </Card.Body>
+          </Card.Root>
+        </SimpleGrid>
 
         {/* Health Reminders */}
-        <div className="mt-8 bg-white rounded-lg shadow">
-          <div className="px-6 py-4 border-b border-gray-200">
-            <h2 className="text-lg font-semibold text-gray-900">Health Reminders</h2>
-          </div>
-          <div className="p-6">
-            <div className="space-y-3">
-              <div className="flex items-center p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-                <AlertCircle className="h-5 w-5 text-yellow-600 mr-3" />
-                <div>
-                  <p className="text-sm font-medium text-yellow-800">Annual Physical Due</p>
-                  <p className="text-xs text-yellow-600">Schedule your annual checkup</p>
-                </div>
-              </div>
-              <div className="flex items-center p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                <FileText className="h-5 w-5 text-blue-600 mr-3" />
-                <div>
-                  <p className="text-sm font-medium text-blue-800">Vaccination Reminder</p>
-                  <p className="text-xs text-blue-600">Flu shot recommended</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
+        <Card.Root bg="white" shadow="md" borderRadius="xl" mt={8}>
+          <Card.Header borderBottom="1px" borderColor="gray.200" p={6}>
+            <HStack>
+              <Icon fontSize="xl" color="yellow.600">
+                <Bell />
+              </Icon>
+              <Heading size="lg" color="gray.900">
+                Rappels santé
+              </Heading>
+            </HStack>
+          </Card.Header>
+          <Card.Body p={6}>
+            <VStack align="stretch" gap={3}>
+              <AlertCard
+                variant="warning"
+                icon={AlertCircle}
+                title="Bilan annuel à effectuer"
+                description="Planifiez votre examen médical annuel"
+              />
+              <AlertCard
+                variant="info"
+                icon={Activity}
+                title="Rappel vaccination"
+                description="Vaccin contre la grippe recommandé"
+              />
+            </VStack>
+          </Card.Body>
+        </Card.Root>
+      </Box>
+    </Box>
   );
 }
