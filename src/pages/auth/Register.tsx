@@ -3,7 +3,8 @@ import { Box, Heading, Text, Input, Button, VStack, Link, HStack, Icon } from '@
 import { useNavigate, Link as RouterLink } from 'react-router-dom'
 import api from '../../lib/api'
 import { createToaster } from '@chakra-ui/react'
-import { Heart, User, Mail, Lock } from 'lucide-react'
+import { Heart, User, Mail, Lock, Phone } from 'lucide-react'
+import { useAuthStore } from '../../stores/authStore'
 
 const toaster = createToaster({
   placement: 'top-end',
@@ -12,9 +13,12 @@ const toaster = createToaster({
 
 const Register = () => {
   const navigate = useNavigate()
+  const login = useAuthStore((state: any) => state.login)
   const [formData, setFormData] = useState({
-    name: '',
+    firstName: '',
+    lastName: '',
     email: '',
+    phone: '',
     password: '',
     confirmPassword: '',
   })
@@ -39,10 +43,20 @@ const Register = () => {
       return
     }
 
-    if (formData.password.length < 6) {
+    if (formData.password.length < 8) {
       toaster.error({
         title: 'Erreur',
-        description: 'Le mot de passe doit contenir au moins 6 caractères',
+        description: 'Le mot de passe doit contenir au moins 8 caractères avec une majuscule, un chiffre et un caractère spécial',
+      })
+      return
+    }
+
+    // Password strength validation
+    const passwordRegex = /^(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*])/
+    if (!passwordRegex.test(formData.password)) {
+      toaster.error({
+        title: 'Erreur',
+        description: 'Le mot de passe doit contenir au moins une majuscule, un chiffre et un caractère spécial (!@#$%^&*)',
       })
       return
     }
@@ -50,34 +64,66 @@ const Register = () => {
     setIsLoading(true)
 
     try {
+      // Clean phone number - remove spaces, parentheses, and dashes
+      const cleanPhone = formData.phone.replace(/[\s()\\-]/g, '')
+      
       console.log('Sending registration data:', {
-        name: formData.name,
+        firstName: formData.firstName,
+        lastName: formData.lastName,
         email: formData.email,
+        phone: cleanPhone,
         password: '***hidden***'
       })
 
-      const response = await api.post('/auth/register', {
-        name: formData.name,
+      const response = await api.post('/api/v1/auth/register', {
+        firstName: formData.firstName,
+        lastName: formData.lastName,
         email: formData.email,
+        phone: cleanPhone,
         password: formData.password,
+        role: 'patient',
       })
 
       console.log('Registration response:', response.data)
 
-      toaster.success({
-        title: 'Inscription réussie',
-        description: 'Votre compte a été créé avec succès. Veuillez vous connecter.',
+      // Auto-login after registration
+      const loginResponse = await api.post('/api/v1/auth/login', {
+        email: formData.email,
+        password: formData.password,
       })
 
-      navigate('/login')
+      const { accessToken, user } = loginResponse.data
+      
+      // Store token and update auth state
+      localStorage.setItem('careflow_token', accessToken)
+      login(user, accessToken)
+
+      toaster.success({
+        title: 'Inscription réussie',
+        description: `Bienvenue ${formData.firstName}! Votre compte a été créé avec succès.`,
+      })
+
+      navigate('/dashboard')
     } catch (error: any) {
       console.error('Registration error:', error)
-      console.error('Error response:', error.response?.data)
+      console.error('Error response data:', error.response?.data)
       console.error('Error status:', error.response?.status)
+      
+      let errorMessage = 'Une erreur est survenue lors de l\'inscription';
+      
+      if (error.response?.status === 409) {
+        errorMessage = 'Cette adresse email est déjà enregistrée. Veuillez utiliser une autre adresse ou essayer de vous connecter.';
+      } else if (error.response?.data?.error) {
+        errorMessage = error.response.data.error;
+      } else if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
       
       toaster.error({
         title: 'Erreur d\'inscription',
-        description: error.response?.data?.message || error.message || 'Une erreur est survenue lors de l\'inscription',
+        description: errorMessage,
       })
     } finally {
       setIsLoading(false)
@@ -117,16 +163,39 @@ const Register = () => {
                       <User />
                     </Icon>
                     <Text fontWeight="medium" color="gray.700">
-                      Nom complet
+                      Prénom
                     </Text>
                   </HStack>
                   <Input
-                    name="name"
+                    name="firstName"
                     type="text"
-                    value={formData.name}
+                    value={formData.firstName}
                     onChange={handleChange}
                     required
-                    placeholder="Dr. Jean Dupont"
+                    placeholder="Jean"
+                    size="lg"
+                    borderRadius="lg"
+                    borderColor="gray.300"
+                    css={{ '&:focus': { borderColor: '#238D94', boxShadow: '0 0 0 1px #238D94' } }}
+                  />
+                </Box>
+
+                <Box w="full">
+                  <HStack mb={2}>
+                    <Icon fontSize="lg" color="gray.500">
+                      <User />
+                    </Icon>
+                    <Text fontWeight="medium" color="gray.700">
+                      Nom
+                    </Text>
+                  </HStack>
+                  <Input
+                    name="lastName"
+                    type="text"
+                    value={formData.lastName}
+                    onChange={handleChange}
+                    required
+                    placeholder="Dupont"
                     size="lg"
                     borderRadius="lg"
                     borderColor="gray.300"
@@ -160,6 +229,29 @@ const Register = () => {
                 <Box w="full">
                   <HStack mb={2}>
                     <Icon fontSize="lg" color="gray.500">
+                      <Phone />
+                    </Icon>
+                    <Text fontWeight="medium" color="gray.700">
+                      Téléphone
+                    </Text>
+                  </HStack>
+                  <Input
+                    name="phone"
+                    type="tel"
+                    value={formData.phone}
+                    onChange={handleChange}
+                    required
+                    placeholder="+33612345678"
+                    size="lg"
+                    borderRadius="lg"
+                    borderColor="gray.300"
+                    css={{ '&:focus': { borderColor: '#238D94', boxShadow: '0 0 0 1px #238D94' } }}
+                  />
+                </Box>
+
+                <Box w="full">
+                  <HStack mb={2}>
+                    <Icon fontSize="lg" color="gray.500">
                       <Lock />
                     </Icon>
                     <Text fontWeight="medium" color="gray.700">
@@ -179,7 +271,7 @@ const Register = () => {
                     css={{ '&:focus': { borderColor: '#238D94', boxShadow: '0 0 0 1px #238D94' } }}
                   />
                   <Text fontSize="sm" color="gray.500" mt={1}>
-                    Minimum 6 caractères
+                    Minimum 8 caractères avec une majuscule, un chiffre et un caractère spécial (!@#$%^&*)
                   </Text>
                 </Box>
 

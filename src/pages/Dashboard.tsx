@@ -1,18 +1,34 @@
-import MainLayout from '../layouts/MainLayout'
-import { Heading, Text, SimpleGrid, Box } from '@chakra-ui/react'
+import { useAuthStore } from '../stores/authStore'
+import { PatientDashboard } from '../components/Dahsboard/PatientDashboard'
+import { DoctorDashboard } from '../components/Dahsboard/DoctorDashboard'
+import { AdminDashboard } from '../components/Dahsboard/AdminDashboard'
 
 const Dashboard = () => {
-  return (
-    <MainLayout>
-      <Heading size="lg" mb={4}>Tableau de bord</Heading>
-      <SimpleGrid columns={[1, 2, 3]} gap={4}>
-        <Box p={4} bg="white" boxShadow="sm">Statistiques 1</Box>
-        <Box p={4} bg="white" boxShadow="sm">Statistiques 2</Box>
-        <Box p={4} bg="white" boxShadow="sm">Statistiques 3</Box>
-      </SimpleGrid>
-      <Text mt={6}>Bienvenue sur CareFlow.</Text>
-    </MainLayout>
-  )
+  const user = useAuthStore((state: any) => state.user)
+  
+  // Determine which dashboard to show based on user role
+  const renderDashboard = () => {
+    if (!user) {
+      return <div>Loading...</div>
+    }
+
+    const roleName = user.roleId?.name || user.role || 'Patient'
+    
+    switch (roleName.toLowerCase()) {
+      case 'patient':
+        return <PatientDashboard />
+      case 'doctor':
+        return <DoctorDashboard />
+      case 'superadmin':
+      case 'clinicadmin':
+      case 'admin':
+        return <AdminDashboard />
+      default:
+        return <PatientDashboard />
+    }
+  }
+
+  return <>{renderDashboard()}</>
 }
 
 export default Dashboard

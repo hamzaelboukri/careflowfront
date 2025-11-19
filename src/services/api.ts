@@ -69,7 +69,7 @@ api.interceptors.response.use(
       isRefreshing = true;
 
       try {
-        const resp = await refreshInstance.post('/auth/refresh-token');
+        const resp = await refreshInstance.post('/api/v1/auth/refresh-token');
         const data: any = resp.data;
         const newToken = data?.accessToken || data?.token || null;
         if (newToken) {

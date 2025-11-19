@@ -1,8 +1,8 @@
 import { Calendar, Clock, FileText, AlertCircle, CheckCircle, User } from 'lucide-react';
-import { useAuth } from '../../contexts/AuthContext';
+import { useAuthStore } from '../../stores/authStore';
 
 export function PatientDashboard() {
-  const { user } = useAuth();
+  const user = useAuthStore((state: any) => state.user);
 
   const upcomingAppointments = [
     {
