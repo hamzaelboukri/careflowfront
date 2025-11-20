@@ -1,5 +1,5 @@
 import { useAuthStore } from '../stores/authStore';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import {
   Box,
   Heading,
@@ -27,9 +27,10 @@ interface SidebarProps {
   onViewChange?: (view: 'dashboard' | 'profile') => void;
 }
 
-export function Sidebar({ activeView = 'dashboard', onViewChange }: SidebarProps) {
+export function Sidebar({ activeView, onViewChange }: SidebarProps) {
   const user = useAuthStore((state: any) => state.user);
   const navigate = useNavigate();
+  const location = useLocation();
 
   const isAdmin = user?.role === 'Admin' || user?.role === 'Administrator' || user?.role === 'SuperAdmin' || user?.role === 'ADMIN';
   const isDoctor = user?.role === 'Doctor' || user?.role === 'Médecin' || user?.role === 'DOCTOR';
@@ -39,6 +40,9 @@ export function Sidebar({ activeView = 'dashboard', onViewChange }: SidebarProps
   const lastName = user?.lastName || user?.name?.split(' ').slice(1).join(' ') || '';
   const displayName = `${firstName} ${lastName}`.trim() || user?.email || 'Utilisateur';
   const initials = `${firstName?.[0] || ''}${lastName?.[0] || ''}`.toUpperCase() || user?.email?.[0]?.toUpperCase() || 'U';
+
+  // Check if route is active
+  const isActiveRoute = (path: string) => location.pathname === path;
 
   return (
     <Box
@@ -104,11 +108,11 @@ export function Sidebar({ activeView = 'dashboard', onViewChange }: SidebarProps
             justifyContent="start"
             variant="ghost"
             colorScheme="purple"
-            bg={activeView === 'dashboard' ? 'purple.50' : 'transparent'}
-            color={activeView === 'dashboard' ? 'purple.700' : 'gray.700'}
+            bg={isActiveRoute('/dashboard') ? 'purple.50' : 'transparent'}
+            color={isActiveRoute('/dashboard') ? 'purple.700' : 'gray.700'}
             size="lg"
             px={4}
-            onClick={() => onViewChange?.('dashboard')}
+            onClick={() => navigate('/dashboard')}
             _hover={{ bg: 'purple.50' }}
           >
             <Icon mr={3} asChild>
@@ -121,11 +125,11 @@ export function Sidebar({ activeView = 'dashboard', onViewChange }: SidebarProps
             justifyContent="start"
             variant="ghost"
             colorScheme="purple"
-            bg={activeView === 'profile' ? 'purple.50' : 'transparent'}
-            color={activeView === 'profile' ? 'purple.700' : 'gray.700'}
+            bg={isActiveRoute('/profile') ? 'purple.50' : 'transparent'}
+            color={isActiveRoute('/profile') ? 'purple.700' : 'gray.700'}
             size="lg"
             px={4}
-            onClick={() => onViewChange?.('profile')}
+            onClick={() => navigate('/profile')}
             _hover={{ bg: 'purple.50' }}
           >
             <Icon mr={3} asChild>

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import MainLayout from '../../layouts/MainLayout';
 import {
   Heading,
@@ -14,13 +14,15 @@ import {
   Card,
   HStack,
   Icon,
+  Spinner,
 } from '@chakra-ui/react';
 import { createToaster } from '@chakra-ui/react';
 import { useNavigate } from 'react-router-dom';
-import { Calendar, Clock, User, Building, Stethoscope } from 'lucide-react';
+import { Calendar, Clock, User, Building, Stethoscope, AlertCircle } from 'lucide-react';
 import { createAppointment } from '../../services/appointment.service';
 import type { CreateAppointmentData } from '../../services/appointment.service';
 import { useAuthStore } from '../../stores/authStore';
+import api from '../../lib/api';
 
 const toaster = createToaster({
   placement: 'top-end',
@@ -31,6 +33,13 @@ const AppointmentNew = () => {
   const navigate = useNavigate();
   const user = useAuthStore((state: any) => state.user);
   const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingData, setIsLoadingData] = useState(true);
+  const [dataError, setDataError] = useState<string | null>(null);
+
+  // State for API data
+  const [doctors, setDoctors] = useState<any[]>([]);
+  const [clinics, setClinics] = useState<any[]>([]);
+  const [specialties, setSpecialties] = useState<any[]>([]);
 
   const [formData, setFormData] = useState<Partial<CreateAppointmentData>>({
     patientId: user?.id || user?._id || '',
@@ -43,25 +52,54 @@ const AppointmentNew = () => {
     notes: '',
   });
 
-  // Mock data - À remplacer par des appels API réels
-  const doctors = [
-    { id: '1', name: 'Dr. Sarah Johnson', specialty: 'Cardiologie' },
-    { id: '2', name: 'Dr. Michael Chen', specialty: 'Dermatologie' },
-    { id: '3', name: 'Dr. Emily Davis', specialty: 'Médecine générale' },
-  ];
+  // Fetch doctors, clinics, and specialties from API
+  useEffect(() => {
+    const fetchData = async () => {
+      setIsLoadingData(true);
+      setDataError(null);
+      
+      try {
+        // Fetch all data in parallel
+        const [doctorsRes, clinicsRes, specialtiesRes] = await Promise.allSettled([
+          api.get('/api/v1/users?role=DOCTOR').catch(() => ({ data: [] })),
+          api.get('/api/v1/clinics').catch(() => ({ data: [] })),
+          api.get('/api/v1/specialties').catch(() => ({ data: [] })),
+        ]);
 
-  const clinics = [
-    { id: '1', name: 'Clinique Centrale', address: '123 Rue Principale' },
-    { id: '2', name: 'Centre Médical Nord', address: '456 Avenue du Nord' },
-  ];
+        // Extract doctors
+        if (doctorsRes.status === 'fulfilled') {
+          const doctorData = doctorsRes.value.data;
+          setDoctors(Array.isArray(doctorData) ? doctorData : doctorData.users || []);
+        }
 
-  const specialties = [
-    { id: '1', name: 'Cardiologie' },
-    { id: '2', name: 'Dermatologie' },
-    { id: '3', name: 'Médecine générale' },
-    { id: '4', name: 'Pédiatrie' },
-    { id: '5', name: 'Neurologie' },
-  ];
+        // Extract clinics
+        if (clinicsRes.status === 'fulfilled') {
+          const clinicData = clinicsRes.value.data;
+          setClinics(Array.isArray(clinicData) ? clinicData : clinicData.clinics || []);
+        }
+
+        // Extract specialties
+        if (specialtiesRes.status === 'fulfilled') {
+          const specialtyData = specialtiesRes.value.data;
+          setSpecialties(Array.isArray(specialtyData) ? specialtyData : specialtyData.specialties || []);
+        }
+
+        console.log('📊 Fetched data:', { 
+          doctors: doctorsRes.status === 'fulfilled' ? doctorsRes.value.data : 'failed',
+          clinics: clinicsRes.status === 'fulfilled' ? clinicsRes.value.data : 'failed',
+          specialties: specialtiesRes.status === 'fulfilled' ? specialtiesRes.value.data : 'failed'
+        });
+
+      } catch (error) {
+        console.error('❌ Error fetching data:', error);
+        setDataError('Impossible de charger les données. Veuillez réessayer.');
+      } finally {
+        setIsLoadingData(false);
+      }
+    };
+
+    fetchData();
+  }, []);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
@@ -112,6 +150,8 @@ const AppointmentNew = () => {
         notes: formData.notes,
       };
 
+      console.log('📤 Sending appointment data:', appointmentData);
+
       await createAppointment(appointmentData);
 
       toaster.success({
@@ -121,13 +161,19 @@ const AppointmentNew = () => {
 
       navigate('/appointments');
     } catch (error: any) {
-      console.error('Error creating appointment:', error);
+      console.error('❌ Error creating appointment:', error);
+      console.error('❌ Error response:', error.response?.data);
+      console.error('❌ Error status:', error.response?.status);
+      
+      const errorMessage = error.response?.data?.message || 
+                          error.response?.data?.error || 
+                          error.response?.data?.details ||
+                          (typeof error.response?.data === 'string' ? error.response?.data : null) ||
+                          'Impossible de créer le rendez-vous';
+      
       toaster.error({
         title: 'Erreur',
-        description:
-          error.response?.data?.message ||
-          error.response?.data?.error ||
-          'Impossible de créer le rendez-vous',
+        description: errorMessage,
       });
     } finally {
       setIsLoading(false);
@@ -146,6 +192,66 @@ const AppointmentNew = () => {
               Nouveau rendez-vous
             </Heading>
           </HStack>
+
+          {/* Loading State */}
+          {isLoadingData && (
+            <Card.Root bg="blue.50" borderColor="blue.300" borderWidth="1px">
+              <Card.Body p={4}>
+                <HStack gap={3}>
+                  <Spinner size="sm" color="blue.600" />
+                  <Text fontSize="sm" color="blue.800">
+                    Chargement des données (médecins, cliniques, spécialités)...
+                  </Text>
+                </HStack>
+              </Card.Body>
+            </Card.Root>
+          )}
+
+          {/* Error State */}
+          {dataError && (
+            <Card.Root bg="red.50" borderColor="red.300" borderWidth="1px">
+              <Card.Body p={4}>
+                <HStack gap={2}>
+                  <Icon color="red.600" asChild>
+                    <AlertCircle size={20} />
+                  </Icon>
+                  <VStack align="start" gap={0} flex={1}>
+                    <Text fontWeight="bold" color="red.900" fontSize="sm">
+                      Erreur de chargement
+                    </Text>
+                    <Text fontSize="xs" color="red.800">
+                      {dataError}
+                    </Text>
+                  </VStack>
+                  <Button size="sm" colorScheme="red" variant="outline" onClick={() => window.location.reload()}>
+                    Réessayer
+                  </Button>
+                </HStack>
+              </Card.Body>
+            </Card.Root>
+          )}
+
+          {/* Info message when no data */}
+          {!isLoadingData && !dataError && (doctors.length === 0 || clinics.length === 0 || specialties.length === 0) && (
+            <Card.Root bg="orange.50" borderColor="orange.300" borderWidth="1px">
+              <Card.Body p={4}>
+                <HStack gap={2}>
+                  <Text fontSize="lg">⚠️</Text>
+                  <VStack align="start" gap={0} flex={1}>
+                    <Text fontWeight="bold" color="orange.900" fontSize="sm">
+                      Données manquantes
+                    </Text>
+                    <Text fontSize="xs" color="orange.800">
+                      {doctors.length === 0 && 'Aucun médecin disponible. '}
+                      {clinics.length === 0 && 'Aucune clinique disponible. '}
+                      {specialties.length === 0 && 'Aucune spécialité disponible. '}
+                      Contactez l'administrateur.
+                    </Text>
+                  </VStack>
+                </HStack>
+              </Card.Body>
+            </Card.Root>
+          )}
 
           <Card.Root bg="white" shadow="md" borderRadius="xl">
             <Card.Body p={8}>
@@ -171,7 +277,7 @@ const AppointmentNew = () => {
                         >
                           <option value="">Sélectionnez une spécialité</option>
                           {specialties.map((specialty) => (
-                            <option key={specialty.id} value={specialty.id}>
+                            <option key={specialty._id || specialty.id} value={specialty._id || specialty.id}>
                               {specialty.name}
                             </option>
                           ))}
@@ -198,8 +304,11 @@ const AppointmentNew = () => {
                         >
                           <option value="">Sélectionnez un médecin</option>
                           {doctors.map((doctor) => (
-                            <option key={doctor.id} value={doctor.id}>
-                              {doctor.name} - {doctor.specialty}
+                            <option key={doctor._id || doctor.id} value={doctor._id || doctor.id}>
+                              {doctor.firstName && doctor.lastName 
+                                ? `Dr. ${doctor.firstName} ${doctor.lastName}`
+                                : doctor.name || doctor.email}
+                              {doctor.specialization && ` - ${doctor.specialization}`}
                             </option>
                           ))}
                         </NativeSelectField>
@@ -225,8 +334,9 @@ const AppointmentNew = () => {
                         >
                           <option value="">Sélectionnez une clinique</option>
                           {clinics.map((clinic) => (
-                            <option key={clinic.id} value={clinic.id}>
-                              {clinic.name} - {clinic.address}
+                            <option key={clinic._id || clinic.id} value={clinic._id || clinic.id}>
+                              {clinic.name}
+                              {clinic.address && ` - ${clinic.address}`}
                             </option>
                           ))}
                         </NativeSelectField>
@@ -328,6 +438,7 @@ const AppointmentNew = () => {
                       size="lg"
                       loading={isLoading}
                       loadingText="Création..."
+                      disabled={isLoadingData}
                     >
                       Créer le rendez-vous
                     </Button>

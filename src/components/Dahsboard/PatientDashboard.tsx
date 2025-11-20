@@ -25,9 +25,9 @@ import {
   Clock,
   CheckCircle,
   Stethoscope,
+  FileText,
 } from 'lucide-react';
 import type { Appointment } from '../../services/appointment.service';
-import { ProfilePatient } from '../../pages/patients/ProfilePatient';
 import { Sidebar } from '../Sidebar';
 
 export function PatientDashboard() {
@@ -35,7 +35,6 @@ export function PatientDashboard() {
   const navigate = useNavigate();
   const [appointments] = useState<Appointment[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [activeView, setActiveView] = useState<'dashboard' | 'profile'>('dashboard');
 
   useEffect(() => {
     // Temporarily disabled until backend endpoint is ready
@@ -79,16 +78,10 @@ export function PatientDashboard() {
     <Box minH="100vh" bg="gray.50">
       <HStack align="start" gap={0}>
         {/* Sidebar */}
-        <Sidebar 
-          activeView={activeView} 
-          onViewChange={setActiveView}
-        />
+        <Sidebar />
 
         {/* Main Content */}
         <Box flex={1} p={6} overflowY="auto" bg="gradient-to-br from-blue-50 to-purple-50">
-          {activeView === 'dashboard' ? (
-            // Dashboard View
-            <>
               {/* Simplified Header */}
               <HStack justify="space-between" mb={6}>
                 <VStack align="start" gap={0}>
@@ -503,11 +496,6 @@ export function PatientDashboard() {
                 </Card.Body>
               </Card.Root>
             </>
-          )}
-            </>
-          ) : (
-            // Profile View
-            <ProfilePatient onBack={() => setActiveView('dashboard')} />
           )}
         </Box>
       </HStack>
