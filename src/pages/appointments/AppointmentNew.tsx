@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import MainLayout from '../../layouts/MainLayout';
 import {
   Heading,
@@ -7,7 +7,8 @@ import {
   Input,
   Button,
   Text,
-  Select,
+  NativeSelectRoot,
+  NativeSelectField,
   Textarea,
   SimpleGrid,
   Card,
@@ -161,20 +162,21 @@ const AppointmentNew = () => {
                           Spécialité *
                         </Text>
                       </HStack>
-                      <Select
-                        name="specialtyId"
-                        value={formData.specialtyId}
-                        onChange={handleChange}
-                        placeholder="Sélectionnez une spécialité"
-                        size="lg"
-                        required
-                      >
-                        {specialties.map((specialty) => (
-                          <option key={specialty.id} value={specialty.id}>
-                            {specialty.name}
-                          </option>
-                        ))}
-                      </Select>
+                      <NativeSelectRoot size="lg">
+                        <NativeSelectField
+                          name="specialtyId"
+                          value={formData.specialtyId}
+                          onChange={handleChange}
+                          placeholder="Sélectionnez une spécialité"
+                        >
+                          <option value="">Sélectionnez une spécialité</option>
+                          {specialties.map((specialty) => (
+                            <option key={specialty.id} value={specialty.id}>
+                              {specialty.name}
+                            </option>
+                          ))}
+                        </NativeSelectField>
+                      </NativeSelectRoot>
                     </Box>
 
                     {/* Médecin */}
@@ -187,20 +189,21 @@ const AppointmentNew = () => {
                           Médecin *
                         </Text>
                       </HStack>
-                      <Select
-                        name="doctorId"
-                        value={formData.doctorId}
-                        onChange={handleChange}
-                        placeholder="Sélectionnez un médecin"
-                        size="lg"
-                        required
-                      >
-                        {doctors.map((doctor) => (
-                          <option key={doctor.id} value={doctor.id}>
-                            {doctor.name} - {doctor.specialty}
-                          </option>
-                        ))}
-                      </Select>
+                      <NativeSelectRoot size="lg">
+                        <NativeSelectField
+                          name="doctorId"
+                          value={formData.doctorId}
+                          onChange={handleChange}
+                          placeholder="Sélectionnez un médecin"
+                        >
+                          <option value="">Sélectionnez un médecin</option>
+                          {doctors.map((doctor) => (
+                            <option key={doctor.id} value={doctor.id}>
+                              {doctor.name} - {doctor.specialty}
+                            </option>
+                          ))}
+                        </NativeSelectField>
+                      </NativeSelectRoot>
                     </Box>
 
                     {/* Clinique */}
@@ -213,20 +216,21 @@ const AppointmentNew = () => {
                           Clinique *
                         </Text>
                       </HStack>
-                      <Select
-                        name="clinicId"
-                        value={formData.clinicId}
-                        onChange={handleChange}
-                        placeholder="Sélectionnez une clinique"
-                        size="lg"
-                        required
-                      >
-                        {clinics.map((clinic) => (
-                          <option key={clinic.id} value={clinic.id}>
-                            {clinic.name} - {clinic.address}
-                          </option>
-                        ))}
-                      </Select>
+                      <NativeSelectRoot size="lg">
+                        <NativeSelectField
+                          name="clinicId"
+                          value={formData.clinicId}
+                          onChange={handleChange}
+                          placeholder="Sélectionnez une clinique"
+                        >
+                          <option value="">Sélectionnez une clinique</option>
+                          {clinics.map((clinic) => (
+                            <option key={clinic.id} value={clinic.id}>
+                              {clinic.name} - {clinic.address}
+                            </option>
+                          ))}
+                        </NativeSelectField>
+                      </NativeSelectRoot>
                     </Box>
 
                     {/* Date et heure */}

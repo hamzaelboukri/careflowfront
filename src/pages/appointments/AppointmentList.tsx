@@ -11,15 +11,14 @@ import {
   Card,
   Badge,
   Icon,
-  Tabs,
   Input,
-  Select,
+  NativeSelectRoot,
+  NativeSelectField,
 } from '@chakra-ui/react';
 import { useNavigate } from 'react-router-dom';
 import { Calendar, Plus, Search, Filter, Clock, User } from 'lucide-react';
 import { getMyAppointments } from '../../services/appointment.service';
 import type { Appointment } from '../../services/appointment.service';
-import { AppointmentCard } from '../../components/ui';
 
 const AppointmentList = () => {
   const navigate = useNavigate();
@@ -117,7 +116,7 @@ const AppointmentList = () => {
           {/* Header */}
           <HStack justify="space-between" flexWrap="wrap" gap={4}>
             <HStack>
-              <Icon fontSize="2xl" color="blue.600">
+              <Icon fontSize="2xl" color="blue.600" asChild>
                 <Calendar />
               </Icon>
               <Heading size="xl" color="gray.800">
@@ -128,12 +127,10 @@ const AppointmentList = () => {
               colorScheme="blue"
               size="lg"
               onClick={() => navigate('/appointments/new')}
-              leftIcon={
-                <Icon>
-                  <Plus size={20} />
-                </Icon>
-              }
             >
+              <Icon mr={2} asChild>
+                <Plus size={20} />
+              </Icon>
               Nouveau rendez-vous
             </Button>
           </HStack>
@@ -189,7 +186,7 @@ const AppointmentList = () => {
                 {/* Search */}
                 <Box>
                   <HStack mb={2}>
-                    <Icon color="gray.600">
+                    <Icon color="gray.600" asChild>
                       <Search size={18} />
                     </Icon>
                     <Text fontWeight="semibold" fontSize="sm" color="gray.700">
@@ -207,41 +204,47 @@ const AppointmentList = () => {
                 {/* Status Filter */}
                 <Box>
                   <HStack mb={2}>
-                    <Icon color="gray.600">
+                    <Icon color="gray.600" asChild>
                       <Filter size={18} />
                     </Icon>
                     <Text fontWeight="semibold" fontSize="sm" color="gray.700">
                       Statut
                     </Text>
                   </HStack>
-                  <Select
-                    value={statusFilter}
-                    onChange={(e) => setStatusFilter(e.target.value)}
-                    size="lg"
-                  >
-                    <option value="all">Tous les statuts</option>
-                    <option value="pending">En attente</option>
-                    <option value="confirmed">Confirmé</option>
-                    <option value="completed">Terminé</option>
-                    <option value="cancelled">Annulé</option>
-                  </Select>
+                  <NativeSelectRoot size="lg">
+                    <NativeSelectField
+                      value={statusFilter}
+                      onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setStatusFilter(e.target.value)}
+                    >
+                      <option value="all">Tous les statuts</option>
+                      <option value="pending">En attente</option>
+                      <option value="confirmed">Confirmé</option>
+                      <option value="completed">Terminé</option>
+                      <option value="cancelled">Annulé</option>
+                    </NativeSelectField>
+                  </NativeSelectRoot>
                 </Box>
 
                 {/* Period */}
                 <Box>
                   <HStack mb={2}>
-                    <Icon color="gray.600">
+                    <Icon color="gray.600" asChild>
                       <Clock size={18} />
                     </Icon>
                     <Text fontWeight="semibold" fontSize="sm" color="gray.700">
                       Période
                     </Text>
                   </HStack>
-                  <Select value={activeTab} onChange={(e) => setActiveTab(e.target.value)} size="lg">
-                    <option value="all">Tous</option>
-                    <option value="upcoming">À venir</option>
-                    <option value="past">Passés</option>
-                  </Select>
+                  <NativeSelectRoot size="lg">
+                    <NativeSelectField
+                      value={activeTab}
+                      onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setActiveTab(e.target.value)}
+                    >
+                      <option value="all">Tous</option>
+                      <option value="upcoming">À venir</option>
+                      <option value="past">Passés</option>
+                    </NativeSelectField>
+                  </NativeSelectRoot>
                 </Box>
               </SimpleGrid>
             </Card.Body>
@@ -261,7 +264,7 @@ const AppointmentList = () => {
                 </Text>
               ) : filteredAppointments.length === 0 ? (
                 <VStack py={12} gap={3}>
-                  <Icon fontSize="4xl" color="gray.300">
+                  <Icon fontSize="4xl" color="gray.300" asChild>
                     <Calendar />
                   </Icon>
                   <Text fontSize="lg" color="gray.500">
@@ -292,7 +295,7 @@ const AppointmentList = () => {
                       <HStack justify="space-between" mb={3}>
                         <HStack>
                           <Box bg="blue.100" p={2} borderRadius="full">
-                            <Icon color="blue.600">
+                            <Icon color="blue.600" asChild>
                               <User size={16} />
                             </Icon>
                           </Box>

@@ -10,7 +10,7 @@ import ForgotPassword from './pages/auth/ForgotPassword'
 import ResetPassword from './pages/auth/ResetPassword'
 // Protected pages
 import Dashboard from './pages/Dashboard'
-import Profile from './pages/Profile'
+// import Profile from './pages/Profile'
 import AppointmentList from './pages/appointments/AppointmentList'
 import AppointmentNew from './pages/appointments/AppointmentNew'
 import AppointmentDetail from './pages/appointments/AppointmentDetail'
@@ -58,7 +58,7 @@ function App() {
           {/* Protected routes */}
           <Route element={<ProtectedRoute />}>
             <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/profile" element={<Profile />} />
+            {/* <Route path="/profile" element={<Profile />} /> */}
             
             {/* Appointments */}
             <Route path="/appointments" element={<AppointmentList />} />

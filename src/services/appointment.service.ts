@@ -65,14 +65,19 @@ export const getMyAppointments = async (): Promise<Appointment[]> => {
 
 // Récupérer les rendez-vous à venir
 export const getUpcomingAppointments = async (): Promise<Appointment[]> => {
-  const [pending, confirmed] = await Promise.all([
-    getAppointmentsByStatus('pending'),
-    getAppointmentsByStatus('confirmed'),
-  ]);
-  
-  return [...pending, ...confirmed].sort((a, b) => 
-    new Date(a.startTime).getTime() - new Date(b.startTime).getTime()
-  );
+  try {
+    const [pending, confirmed] = await Promise.all([
+      getAppointmentsByStatus('pending').catch(() => []),
+      getAppointmentsByStatus('confirmed').catch(() => []),
+    ]);
+    
+    return [...pending, ...confirmed].sort((a, b) => 
+      new Date(a.startTime).getTime() - new Date(b.startTime).getTime()
+    );
+  } catch (error) {
+    console.error('Error fetching upcoming appointments:', error);
+    return [];
+  }
 };
 
 export default {

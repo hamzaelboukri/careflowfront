@@ -5,6 +5,16 @@ interface User {
   id: string
   email: string
   name: string
+  firstName?: string
+  lastName?: string
+  phone?: string
+  dateOfBirth?: string
+  gender?: 'Male' | 'Female' | 'Other'
+  address?: string
+  bloodType?: string
+  allergies?: string[]
+  specialization?: string
+  licenseNumber?: string
   role: 'ADMIN' | 'DOCTOR' | 'NURSE' | 'PATIENT' | 'PHARMACIST' | 'LAB_STAFF'
 }
 
