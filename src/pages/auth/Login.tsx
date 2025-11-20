@@ -24,18 +24,52 @@ const Login = () => {
 
     try {
       const response = await api.post('/api/v1/auth/login', { email, password })
-      const { accessToken, user } = response.data
+      console.log('Login response:', response.data)
       
-      // Store token in localStorage and auth store
+      const { accessToken, user: returnedUser } = response.data
+      
+      console.log('Access token:', accessToken)
+      console.log('User data:', returnedUser)
+      
+      // Store token in localStorage first
       localStorage.setItem('careflow_token', accessToken)
+      
+      // If user data is not returned, fetch it from profile endpoint
+      let user = returnedUser
+      if (!user) {
+        console.log('User not in login response, fetching profile...')
+        try {
+          const profileResponse = await api.get('/api/v1/auth/profile', {
+            headers: { Authorization: `Bearer ${accessToken}` }
+          })
+          user = profileResponse.data
+          console.log('Profile data:', user)
+        } catch (profileError) {
+          console.error('Failed to fetch profile:', profileError)
+          // Decode JWT to get basic user info as fallback
+          const tokenPayload = JSON.parse(atob(accessToken.split('.')[1]))
+          user = {
+            id: tokenPayload.sub,
+            email: tokenPayload.email,
+            role: tokenPayload.role,
+            firstName: tokenPayload.firstName || 'User',
+            lastName: tokenPayload.lastName || '',
+          }
+          console.log('Decoded user from token:', user)
+        }
+      }
+      
       login(user, accessToken)
+      
+      console.log('After login, auth store:', useAuthStore.getState())
       
       toaster.success({ 
         title: 'Connexion réussie',
-        description: `Bienvenue ${user.name}`
+        description: `Bienvenue ${user.firstName || user.name || 'User'}`
       })
       navigate('/dashboard')
     } catch (error: any) {
+      console.error('Login error:', error)
       toaster.error({
         title: 'Erreur de connexion',
         description: error.response?.data?.message || 'Email ou mot de passe incorrect',

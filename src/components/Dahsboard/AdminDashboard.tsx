@@ -1,6 +1,11 @@
-import { Users, Calendar, TrendingUp, AlertTriangle, User, CheckCircle } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Box, Button, Heading, Text, SimpleGrid, Card, HStack, VStack, Icon, Badge } from '@chakra-ui/react';
+import { Users, Calendar, TrendingUp, AlertTriangle, User, CheckCircle, Settings, Activity, FileText, Shield } from 'lucide-react';
+import { useAuthStore } from '../../stores/authStore';
 
 export function AdminDashboard() {
+  const navigate = useNavigate();
+  const user = useAuthStore((state: any) => state.user);
 
   const systemStats = [
     { label: 'Total Users', value: '1,247', change: '+12%', icon: Users, color: 'blue' },
@@ -54,165 +59,225 @@ export function AdminDashboard() {
     },
   ];
 
-  const getColorClasses = (color: string) => {
-    switch (color) {
-      case 'blue':
-        return 'bg-blue-100 text-blue-600';
-      case 'green':
-        return 'bg-green-100 text-green-600';
-      case 'purple':
-        return 'bg-purple-100 text-purple-600';
-      case 'red':
-        return 'bg-red-100 text-red-600';
-      default:
-        return 'bg-gray-100 text-gray-600';
-    }
+  const getIconColor = (color: string) => {
+    const colors: Record<string, string> = {
+      blue: 'blue.600',
+      green: 'green.600',
+      purple: 'purple.600',
+      red: 'red.600',
+    };
+    return colors[color] || 'gray.600';
+  };
+
+  const getIconBg = (color: string) => {
+    const colors: Record<string, string> = {
+      blue: 'blue.100',
+      green: 'green.100',
+      purple: 'purple.100',
+      red: 'red.100',
+    };
+    return colors[color] || 'gray.100';
+  };
+
+  const getPriorityColors = (priority: string) => {
+    if (priority === 'high') return { bg: 'red.50', border: 'red.200', text: 'red.800', badge: 'red' };
+    if (priority === 'medium') return { bg: 'yellow.50', border: 'yellow.200', text: 'yellow.800', badge: 'yellow' };
+    return { bg: 'green.50', border: 'green.200', text: 'green.800', badge: 'green' };
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
-      <div className="max-w-7xl mx-auto">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
-          <p className="text-gray-600 mt-2">System overview and management</p>
-        </div>
+    <Box minH="100vh" bg="gray.50" p={6}>
+      <Box maxW="7xl" mx="auto">
+        {/* Header */}
+        <VStack align="stretch" mb={8} gap={2}>
+          <Heading size="2xl" color="gray.800">
+            Tableau de bord Admin
+          </Heading>
+          <Text color="gray.600" fontSize="lg">
+            Bienvenue, {user?.firstName} {user?.lastName}! Vue d'ensemble du système
+          </Text>
+        </VStack>
 
         {/* System Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        <SimpleGrid columns={{ base: 1, md: 2, lg: 4 }} gap={6} mb={8}>
           {systemStats.map((stat, index) => {
-            const Icon = stat.icon;
+            const IconComponent = stat.icon;
             return (
-              <div key={index} className="bg-white rounded-lg shadow p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-gray-600">{stat.label}</p>
-                    <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
-                    <p className="text-sm text-green-600 mt-1">{stat.change} from last month</p>
-                  </div>
-                  <div className={`rounded-lg p-3 ${getColorClasses(stat.color)}`}>
-                    <Icon className="h-6 w-6" />
-                  </div>
-                </div>
-              </div>
+              <Card.Root key={index} bg="white" shadow="md" borderRadius="xl" p={6} _hover={{ shadow: 'lg', transform: 'translateY(-2px)' }} transition="all 0.3s">
+                <HStack justify="space-between">
+                  <VStack align="start" gap={1}>
+                    <Text fontSize="sm" fontWeight="medium" color="gray.600">
+                      {stat.label}
+                    </Text>
+                    <Text fontSize="3xl" fontWeight="bold" color="gray.900">
+                      {stat.value}
+                    </Text>
+                    <Text fontSize="sm" color="green.600">
+                      {stat.change} du mois dernier
+                    </Text>
+                  </VStack>
+                  <Box bg={getIconBg(stat.color)} p={3} borderRadius="lg">
+                    <Icon fontSize="2xl" color={getIconColor(stat.color)}>
+                      <IconComponent />
+                    </Icon>
+                  </Box>
+                </HStack>
+              </Card.Root>
             );
           })}
-        </div>
+        </SimpleGrid>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <SimpleGrid columns={{ base: 1, lg: 2 }} gap={8} mb={8}>
           {/* Recent Activity */}
-          <div className="bg-white rounded-lg shadow">
-            <div className="px-6 py-4 border-b border-gray-200">
-              <h2 className="text-lg font-semibold text-gray-900">Recent Activity</h2>
-            </div>
-            <div className="p-6">
-              <div className="space-y-4">
+          <Card.Root bg="white" shadow="md" borderRadius="xl">
+            <Card.Header borderBottom="1px" borderColor="gray.200" p={6}>
+              <Heading size="lg" color="gray.900">
+                Activité récente
+              </Heading>
+            </Card.Header>
+            <Card.Body p={6}>
+              <VStack align="stretch" gap={4}>
                 {recentActivity.map((activity) => (
-                  <div key={activity.id} className="flex items-center p-3 border border-gray-200 rounded-lg">
-                    <div className="bg-blue-100 rounded-full p-2 mr-3">
-                      {activity.type === 'registration' && <User className="h-4 w-4 text-blue-600" />}
-                      {activity.type === 'appointment' && <Calendar className="h-4 w-4 text-blue-600" />}
-                      {activity.type === 'record' && <CheckCircle className="h-4 w-4 text-blue-600" />}
-                    </div>
-                    <div className="flex-1">
-                      <p className="text-sm font-medium text-gray-900">{activity.action}</p>
-                      <p className="text-xs text-gray-600">by {activity.user}</p>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-xs text-gray-500">{activity.time}</p>
-                    </div>
-                  </div>
+                  <HStack key={activity.id} p={4} border="1px" borderColor="gray.200" borderRadius="lg" _hover={{ bg: 'gray.50' }} transition="all 0.2s">
+                    <Box bg="blue.100" p={2} borderRadius="full">
+                      <Icon color="blue.600">
+                        {activity.type === 'registration' && <User size={16} />}
+                        {activity.type === 'appointment' && <Calendar size={16} />}
+                        {activity.type === 'record' && <CheckCircle size={16} />}
+                      </Icon>
+                    </Box>
+                    <VStack align="start" flex={1} gap={0}>
+                      <Text fontSize="sm" fontWeight="medium" color="gray.900">
+                        {activity.action}
+                      </Text>
+                      <Text fontSize="xs" color="gray.600">
+                        par {activity.user}
+                      </Text>
+                    </VStack>
+                    <Text fontSize="xs" color="gray.500">
+                      {activity.time}
+                    </Text>
+                  </HStack>
                 ))}
-              </div>
-              <button className="w-full mt-4 bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors duration-200">
-                View All Activity
-              </button>
-            </div>
-          </div>
+              </VStack>
+              <Button w="full" mt={4} colorScheme="blue" size="lg">
+                Voir toute l'activité
+              </Button>
+            </Card.Body>
+          </Card.Root>
 
           {/* System Alerts */}
-          <div className="bg-white rounded-lg shadow">
-            <div className="px-6 py-4 border-b border-gray-200">
-              <h2 className="text-lg font-semibold text-gray-900">System Alerts</h2>
-            </div>
-            <div className="p-6">
-              <div className="space-y-4">
-                {systemAlerts.map((alert) => (
-                  <div 
-                    key={alert.id} 
-                    className={`p-3 border rounded-lg ${
-                      alert.priority === 'high' 
-                        ? 'bg-red-50 border-red-200' 
-                        : alert.priority === 'medium'
-                        ? 'bg-yellow-50 border-yellow-200'
-                        : 'bg-green-50 border-green-200'
-                    }`}
-                  >
-                    <div className="flex items-center">
-                      <AlertTriangle 
-                        className={`h-4 w-4 mr-2 ${
-                          alert.priority === 'high' 
-                            ? 'text-red-600' 
-                            : alert.priority === 'medium'
-                            ? 'text-yellow-600'
-                            : 'text-green-600'
-                        }`} 
-                      />
-                      <p className={`text-sm font-medium ${
-                        alert.priority === 'high' 
-                          ? 'text-red-800' 
-                          : alert.priority === 'medium'
-                          ? 'text-yellow-800'
-                          : 'text-green-800'
-                      }`}>
-                        {alert.message}
-                      </p>
-                    </div>
-                    <span className={`inline-block mt-2 px-2 py-1 text-xs rounded-full ${
-                      alert.priority === 'high' 
-                        ? 'bg-red-100 text-red-800' 
-                        : alert.priority === 'medium'
-                        ? 'bg-yellow-100 text-yellow-800'
-                        : 'bg-green-100 text-green-800'
-                    }`}>
-                      {alert.priority} priority
-                    </span>
-                  </div>
-                ))}
-              </div>
-              <button className="w-full mt-4 bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors duration-200">
-                Manage Alerts
-              </button>
-            </div>
-          </div>
-        </div>
+          <Card.Root bg="white" shadow="md" borderRadius="xl">
+            <Card.Header borderBottom="1px" borderColor="gray.200" p={6}>
+              <Heading size="lg" color="gray.900">
+                Alertes système
+              </Heading>
+            </Card.Header>
+            <Card.Body p={6}>
+              <VStack align="stretch" gap={4}>
+                {systemAlerts.map((alert) => {
+                  const colors = getPriorityColors(alert.priority);
+                  return (
+                    <Box key={alert.id} p={4} bg={colors.bg} border="1px" borderColor={colors.border} borderRadius="lg">
+                      <HStack mb={2}>
+                        <Icon color={colors.text}>
+                          <AlertTriangle size={16} />
+                        </Icon>
+                        <Text fontSize="sm" fontWeight="medium" color={colors.text}>
+                          {alert.message}
+                        </Text>
+                      </HStack>
+                      <Badge colorScheme={colors.badge}>{alert.priority} priority</Badge>
+                    </Box>
+                  );
+                })}
+              </VStack>
+              <Button w="full" mt={4} colorScheme="blue" size="lg">
+                Gérer les alertes
+              </Button>
+            </Card.Body>
+          </Card.Root>
+        </SimpleGrid>
 
         {/* Quick Actions */}
-        <div className="mt-8 bg-white rounded-lg shadow">
-          <div className="px-6 py-4 border-b border-gray-200">
-            <h2 className="text-lg font-semibold text-gray-900">Quick Actions</h2>
-          </div>
-          <div className="p-6">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <button className="flex flex-col items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors duration-200">
-                <Users className="h-8 w-8 text-blue-600 mb-2" />
-                <span className="text-sm font-medium text-gray-900">Manage Users</span>
-              </button>
-              <button className="flex flex-col items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors duration-200">
-                <Calendar className="h-8 w-8 text-green-600 mb-2" />
-                <span className="text-sm font-medium text-gray-900">View Schedule</span>
-              </button>
-              <button className="flex flex-col items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors duration-200">
-                <TrendingUp className="h-8 w-8 text-purple-600 mb-2" />
-                <span className="text-sm font-medium text-gray-900">Reports</span>
-              </button>
-              <button className="flex flex-col items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors duration-200">
-                <AlertTriangle className="h-8 w-8 text-red-600 mb-2" />
-                <span className="text-sm font-medium text-gray-900">System Health</span>
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
+        <Card.Root bg="white" shadow="md" borderRadius="xl">
+          <Card.Header borderBottom="1px" borderColor="gray.200" p={6}>
+            <Heading size="lg" color="gray.900">
+              Actions rapides
+            </Heading>
+          </Card.Header>
+          <Card.Body p={6}>
+            <SimpleGrid columns={{ base: 2, md: 4 }} gap={4}>
+              <Button
+                onClick={() => navigate('/users')}
+                h="auto"
+                py={6}
+                flexDirection="column"
+                variant="outline"
+                borderColor="gray.200"
+                _hover={{ bg: 'gray.50' }}
+              >
+                <Icon fontSize="3xl" color="blue.600" mb={2}>
+                  <Users />
+                </Icon>
+                <Text fontSize="sm" fontWeight="medium" color="gray.900">
+                  Gérer les utilisateurs
+                </Text>
+              </Button>
+
+              <Button
+                onClick={() => navigate('/appointments')}
+                h="auto"
+                py={6}
+                flexDirection="column"
+                variant="outline"
+                borderColor="gray.200"
+                _hover={{ bg: 'gray.50' }}
+              >
+                <Icon fontSize="3xl" color="green.600" mb={2}>
+                  <Calendar />
+                </Icon>
+                <Text fontSize="sm" fontWeight="medium" color="gray.900">
+                  Voir l'agenda
+                </Text>
+              </Button>
+
+              <Button
+                onClick={() => navigate('/patients')}
+                h="auto"
+                py={6}
+                flexDirection="column"
+                variant="outline"
+                borderColor="gray.200"
+                _hover={{ bg: 'gray.50' }}
+              >
+                <Icon fontSize="3xl" color="purple.600" mb={2}>
+                  <FileText />
+                </Icon>
+                <Text fontSize="sm" fontWeight="medium" color="gray.900">
+                  Rapports
+                </Text>
+              </Button>
+
+              <Button
+                h="auto"
+                py={6}
+                flexDirection="column"
+                variant="outline"
+                borderColor="gray.200"
+                _hover={{ bg: 'gray.50' }}
+              >
+                <Icon fontSize="3xl" color="red.600" mb={2}>
+                  <Activity />
+                </Icon>
+                <Text fontSize="sm" fontWeight="medium" color="gray.900">
+                  Santé du système
+                </Text>
+              </Button>
+            </SimpleGrid>
+          </Card.Body>
+        </Card.Root>
+      </Box>
+    </Box>
   );
 }

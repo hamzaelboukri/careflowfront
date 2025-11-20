@@ -8,7 +8,7 @@ interface AppointmentCardProps {
   doctor: string;
   specialization: string;
   location: string;
-  status: 'confirmed' | 'pending' | 'cancelled';
+  status: 'confirmed' | 'pending' | 'cancelled' | 'completed';
   onClick?: () => void;
 }
 
@@ -25,6 +25,7 @@ export function AppointmentCard({
     confirmed: { color: 'green', icon: Clock, label: 'Confirmé' },
     pending: { color: 'yellow', icon: Clock, label: 'En attente' },
     cancelled: { color: 'red', icon: Clock, label: 'Annulé' },
+    completed: { color: 'blue', icon: Clock, label: 'Terminé' },
   };
 
   const config = statusConfig[status];

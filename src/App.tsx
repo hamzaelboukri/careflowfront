@@ -24,6 +24,9 @@ import LabOrderList from './pages/lab-orders/LabOrderList'
 import LabOrderDetail from './pages/lab-orders/LabOrderDetail'
 import DocumentsList from './pages/documents/DocumentsList'
 import DocumentDetail from './pages/documents/DocumentDetail'
+import ConsultationList from './pages/consultations/ConsultationList'
+import ConsultationNew from './pages/consultations/ConsultationNew'
+import MedicalRecordDetail from './pages/medical-records/MedicalRecordDetail'
 
 import { ProtectedRoute } from './components/ProtectedRoute'
 import { PublicRoute } from './components/PublicRoute'
@@ -85,6 +88,13 @@ function App() {
             {/* Documents */}
             <Route path="/documents" element={<DocumentsList />} />
             <Route path="/documents/:id" element={<DocumentDetail />} />
+            
+            {/* Consultations - Medical staff only */}
+            <Route element={<ProtectedRoute allowedRoles={['ADMIN', 'DOCTOR', 'NURSE']} />}>
+              <Route path="/consultations" element={<ConsultationList />} />
+              <Route path="/consultations/new" element={<ConsultationNew />} />
+              <Route path="/medical-records/:patientId" element={<MedicalRecordDetail />} />
+            </Route>
           </Route>
 
           {/* Catch all */}

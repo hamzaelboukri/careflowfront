@@ -6,6 +6,10 @@ import { AdminDashboard } from '../components/Dahsboard/AdminDashboard'
 const Dashboard = () => {
   const user = useAuthStore((state: any) => state.user)
   
+  console.log('Dashboard - Current user:', user)
+  console.log('Dashboard - User role:', user?.role)
+  console.log('Dashboard - User roleId:', user?.roleId)
+  
   // Determine which dashboard to show based on user role
   const renderDashboard = () => {
     if (!user) {
@@ -13,6 +17,8 @@ const Dashboard = () => {
     }
 
     const roleName = user.roleId?.name || user.role || 'Patient'
+    
+    console.log('Dashboard - Resolved role name:', roleName)
     
     switch (roleName.toLowerCase()) {
       case 'patient':

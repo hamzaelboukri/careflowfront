@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import { Calendar, Plus, Bell, Activity, Pill, TestTube } from 'lucide-react';
 import { useAuthStore } from '../../stores/authStore';
 import { useNavigate } from 'react-router-dom';
@@ -11,33 +12,34 @@ import {
   AlertCard,
 } from '../ui';
 import { AlertCircle } from 'lucide-react';
+import { getUpcomingAppointments } from '../../services/appointment.service';
+import type { Appointment } from '../../services/appointment.service';
 
 export function PatientDashboard() {
   const user = useAuthStore((state: any) => state.user);
   const navigate = useNavigate();
+  
+  const [appointments, setAppointments] = useState<Appointment[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Mock data - À remplacer par des appels API réels
-  const upcomingAppointments = [
-    {
-      id: '1',
-      date: '2025-01-15',
-      time: '10:00',
-      doctor: 'Dr. Sarah Johnson',
-      specialization: 'Cardiologie',
-      status: 'confirmed' as const,
-      location: 'Cabinet A - Étage 2',
-    },
-    {
-      id: '2',
-      date: '2025-01-22',
-      time: '14:30',
-      doctor: 'Dr. Michael Chen',
-      specialization: 'Dermatologie',
-      status: 'pending' as const,
-      location: 'Cabinet B - Étage 1',
-    },
-  ];
+  useEffect(() => {
+    fetchDashboardData();
+  }, []);
 
+  const fetchDashboardData = async () => {
+    try {
+      setIsLoading(true);
+      // Fetch upcoming appointments from backend
+      const upcomingAppts = await getUpcomingAppointments();
+      setAppointments(upcomingAppts.slice(0, 3)); // Show only first 3
+    } catch (error) {
+      console.error('Error fetching dashboard data:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Mock data for other sections - TODO: Replace with API calls
   const recentRecords = [
     {
       id: '1',
@@ -45,13 +47,6 @@ export function PatientDashboard() {
       doctor: 'Dr. Sarah Johnson',
       diagnosis: 'Examen de routine',
       type: 'Consultation générale',
-    },
-    {
-      id: '2',
-      date: '2024-12-15',
-      doctor: 'Dr. Emily Davis',
-      diagnosis: 'Bilan annuel',
-      type: 'Soins préventifs',
     },
   ];
 
@@ -64,14 +59,6 @@ export function PatientDashboard() {
       duration: '7 jours',
       status: 'active' as const,
     },
-    {
-      id: '2',
-      medication: 'Ibuprofène 400mg',
-      doctor: 'Dr. Michael Chen',
-      date: '2024-12-20',
-      duration: '5 jours',
-      status: 'completed' as const,
-    },
   ];
 
   const labResults = [
@@ -82,14 +69,15 @@ export function PatientDashboard() {
       status: 'completed' as const,
       result: 'Normal',
     },
-    {
-      id: '2',
-      test: 'Test de glycémie',
-      date: '2024-12-28',
-      status: 'completed' as const,
-      result: 'Normal',
-    },
   ];
+
+  // Calculate stats from real data
+  const stats = {
+    upcomingAppointments: appointments.length,
+    completedConsultations: 12, // TODO: Fetch from backend
+    activePrescriptions: prescriptions.filter((p) => p.status === 'active').length,
+    labResults: labResults.length,
+  };
 
   return (
     <Box minH="100vh" bg="gray.50" p={6}>
@@ -105,83 +93,114 @@ export function PatientDashboard() {
         </VStack>
 
         {/* Quick Stats */}
-        <SimpleGrid columns={{ base: 1, md: 2, lg: 4 }} gap={6} mb={8}>
-          <StatCard
-            title="Rendez-vous à venir"
-            value={upcomingAppointments.length}
-            icon={Calendar}
-            iconColor="blue.600"
-            iconBg="blue.100"
-          />
-          <StatCard
-            title="Consultations terminées"
-            value={12}
-            icon={Activity}
-            iconColor="green.600"
-            iconBg="green.100"
-          />
-          <StatCard
-            title="Prescriptions actives"
-            value={prescriptions.filter((p) => p.status === 'active').length}
-            icon={Pill}
-            iconColor="purple.600"
-            iconBg="purple.100"
-          />
-          <StatCard
-            title="Résultats labo"
-            value={labResults.length}
-            icon={TestTube}
-            iconColor="orange.600"
-            iconBg="orange.100"
-          />
-        </SimpleGrid>
+        {isLoading ? (
+          <Text textAlign="center" color="gray.500" py={8}>
+            Chargement...
+          </Text>
+        ) : (
+          <>
+            <SimpleGrid columns={{ base: 1, md: 2, lg: 4 }} gap={6} mb={8}>
+              <StatCard
+                title="Rendez-vous à venir"
+                value={stats.upcomingAppointments}
+                icon={Calendar}
+                iconColor="blue.600"
+                iconBg="blue.100"
+              />
+              <StatCard
+                title="Consultations terminées"
+                value={stats.completedConsultations}
+                icon={Activity}
+                iconColor="green.600"
+                iconBg="green.100"
+              />
+              <StatCard
+                title="Prescriptions actives"
+                value={stats.activePrescriptions}
+                icon={Pill}
+                iconColor="purple.600"
+                iconBg="purple.100"
+              />
+              <StatCard
+                title="Résultats labo"
+                value={stats.labResults}
+                icon={TestTube}
+                iconColor="orange.600"
+                iconBg="orange.100"
+              />
+            </SimpleGrid>
 
-        <SimpleGrid columns={{ base: 1, lg: 2 }} gap={8}>
-          {/* Upcoming Appointments */}
-          <Card.Root bg="white" shadow="md" borderRadius="xl">
-            <Card.Header borderBottom="1px" borderColor="gray.200" p={6}>
-              <HStack justify="space-between">
-                <Heading size="lg" color="gray.900">
-                  Rendez-vous à venir
-                </Heading>
-                <Button
-                  size="sm"
-                  colorScheme="blue"
-                  onClick={() => navigate('/appointments/new')}
-                  leftIcon={
-                    <Icon>
-                      <Plus size={16} />
-                    </Icon>
-                  }
-                >
-                  Nouveau
-                </Button>
-              </HStack>
-            </Card.Header>
-            <Card.Body p={6}>
-              <VStack align="stretch" gap={4}>
-                {upcomingAppointments.map((appointment) => (
-                  <AppointmentCard
-                    key={appointment.id}
-                    {...appointment}
-                    onClick={() => navigate(`/appointments/${appointment.id}`)}
-                  />
-                ))}
-              </VStack>
-              <Button
-                w="full"
-                mt={4}
-                colorScheme="blue"
-                variant="outline"
-                onClick={() => navigate('/appointments')}
-              >
-                Voir tous les rendez-vous
-              </Button>
-            </Card.Body>
-          </Card.Root>
+            <SimpleGrid columns={{ base: 1, lg: 2 }} gap={8}>
+              {/* Upcoming Appointments */}
+              <Card.Root bg="white" shadow="md" borderRadius="xl">
+                <Card.Header borderBottom="1px" borderColor="gray.200" p={6}>
+                  <HStack justify="space-between">
+                    <Heading size="lg" color="gray.900">
+                      Rendez-vous à venir
+                    </Heading>
+                    <Button
+                      size="sm"
+                      colorScheme="blue"
+                      onClick={() => navigate('/appointments/new')}
+                    >
+                      <Icon mr={1}>
+                        <Plus size={16} />
+                      </Icon>
+                      Nouveau
+                    </Button>
+                  </HStack>
+                </Card.Header>
+                <Card.Body p={6}>
+                  {appointments.length === 0 ? (
+                    <VStack py={8} gap={3}>
+                      <Icon fontSize="3xl" color="gray.300">
+                        <Calendar />
+                      </Icon>
+                      <Text color="gray.500">Aucun rendez-vous à venir</Text>
+                      <Button
+                        colorScheme="blue"
+                        variant="outline"
+                        onClick={() => navigate('/appointments/new')}
+                      >
+                        Prendre un rendez-vous
+                      </Button>
+                    </VStack>
+                  ) : (
+                    <>
+                      <VStack align="stretch" gap={4}>
+                        {appointments.map((appointment) => (
+                          <AppointmentCard
+                            key={appointment._id}
+                            id={appointment._id}
+                            date={new Date(appointment.startTime).toISOString().split('T')[0]}
+                            time={new Date(appointment.startTime).toLocaleTimeString('fr-FR', {
+                              hour: '2-digit',
+                              minute: '2-digit',
+                            })}
+                            doctor={appointment.doctorId || 'Médecin'}
+                            specialization="Consultation"
+                            status={appointment.status}
+                            location="Clinique"
+                            onClick={() => navigate(`/appointments/${appointment._id}`)}
+                          />
+                        ))}
+                      </VStack>
+                      <Button
+                        w="full"
+                        mt={4}
+                        colorScheme="blue"
+                        variant="outline"
+                        onClick={() => navigate('/appointments')}
+                      >
+                        Voir tous les rendez-vous
+                      </Button>
+                    </>
+                  )}
+                </Card.Body>
+              </Card.Root>
 
-          {/* Prescriptions actives */}
-          <Card.Root bg="white" shadow="md" borderRadius="xl">
+              {/* Prescriptions actives */}
+              <Card.Root bg="white" shadow="md" borderRadius="xl">
             <Card.Header borderBottom="1px" borderColor="gray.200" p={6}>
               <HStack justify="space-between">
                 <Heading size="lg" color="gray.900">
@@ -310,6 +329,8 @@ export function PatientDashboard() {
             </VStack>
           </Card.Body>
         </Card.Root>
+          </>
+        )}
       </Box>
     </Box>
   );

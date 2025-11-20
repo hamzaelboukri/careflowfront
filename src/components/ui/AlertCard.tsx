@@ -1,10 +1,11 @@
 import { Box, HStack, VStack, Text, Icon } from '@chakra-ui/react';
-import { LucideIcon } from 'lucide-react';
+import type { LucideProps } from 'lucide-react';
+import type { FC } from 'react';
 
 interface AlertCardProps {
   title: string;
   description: string;
-  icon: LucideIcon;
+  icon: FC<LucideProps>;
   variant: 'warning' | 'info' | 'success' | 'error';
 }
 

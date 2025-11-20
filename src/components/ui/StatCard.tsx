@@ -1,10 +1,11 @@
 import { Box, Card, HStack, VStack, Text, Icon } from '@chakra-ui/react';
-import { LucideIcon } from 'lucide-react';
+import type { LucideProps } from 'lucide-react';
+import type { FC } from 'react';
 
 interface StatCardProps {
   title: string;
   value: string | number;
-  icon: LucideIcon;
+  icon: FC<LucideProps>;
   iconColor: string;
   iconBg: string;
 }
